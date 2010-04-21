@@ -1,24 +1,56 @@
 Overview
 ========
 
-This package enables you to run Django applications in their own
-process space. It's designed for use with the PasteScript and
-PasteDeploy packages.
+This package enables you to manage and run Django applications in
+their own process space. It's designed for use with the PasteScript
+and PasteDeploy packages.
 
-Sample configuration::
+Running an application
+----------------------
 
-  [app:django]
+For a general introduction to PasteDeploy consult its `documentation
+<http://pythonpaste.org/deploy/>`_.
+
+Sample configuration ``deploy.ini``::
+
+  [app:my-django-app]
   use = egg:django-wsgi-process#app
   settings = %(here)s/settings.py
 
   [composite:main]
   use = egg:Paste#urlmap
-  / = django
+  / = my-django-app
 
   [server:main]
   use = egg:Paste#http
   host = 0.0.0.0
   port = 8080
+
+Note the reference to the ``settings.py`` file which in this example
+resides in the same directory (the ``here`` variable is substituted
+with the local directory).
+
+To run the application we use `PasteScript
+<http://pythonpaste.org/script/>`_ with the ``serve`` command::
+
+  $ paster serve deploy.ini
+
+Management
+----------
+
+The ``manage`` command mimicks Django's ``manage.py`` script. Here's
+an example of an invocation of the ``syncdb`` command::
+
+  $ paster manage deploy.ini my-django-app syncdb
+
+To show all commands::
+
+  $ paster manage deploy.ini my-django-app help
+
+Note that if the application name is ``main`` (this short-hand is used
+in general with the Paste system), the command is just::
+
+  $ paster manage deploy.ini syncdb
 
 License
 -------

@@ -1,5 +1,6 @@
 import os
 import imp
+import sys
 
 from paste.script.command import Command
 from paste.script.command import BadCommand
@@ -41,24 +42,28 @@ class Manage(Command):
     def command(self):
         if not self.args:
             raise BadCommand('You must give a config file')
-        if len(self.args) == 2:
-            path, command = self.args
-            app_name = self.options.app_name
-        elif len(self.args) == 3:
-            path, app_name, command = self.args
-        else:
-            raise ValueError("Must provide two or three arguments.")
+        path = self.args[0]
 
+        if len(self.args) > 2:
+            app_name = self.args[1]
+            argv = self.args[2:]
+        else:
+            app_name = self.options.app_name
+            argv = self.args[1:]
+
+        argv.insert(0, self.command_name)
         app_spec = "config:%s" % path
         base = os.getcwd()
 
         # load application configuration
         config = appconfig(app_spec, name=app_name, relative_to=base)
+        print "Managing application: %s..." % repr(app_name or 'main')
         settings = config.get('settings')
         if settings is None:
-            raise LookupError("No value given for 'settings'.")
-        argv = [self.command_name, command]
-        self.process = Process(target=utility,
-                               args=SOCKETS + (settings, argv))
+            print "Error: Configuration must include the 'settings' parameter."
+            sys.exit(1)
+
+        self.process = Process(
+            target=utility, args=SOCKETS + (settings, argv))
         self.process.start()
         self.process.join()
