@@ -25,7 +25,7 @@ install_requires = [
     ]
 
 setup(
-    name="django-wsgi-process",
+    name="django-wsgi-tools",
     version=__version__,
     description="Process-based WSGI application host for Django.",
     long_description=long_description,
