@@ -52,6 +52,15 @@ in general with the Paste system), the command is just::
 
   $ paster manage deploy.ini syncdb
 
+Support
+-------
+
+This software is kept in source control: `git repository
+<http://github.com/malthe/django-wsgi-tools>`_.
+
+For support please log on to ``irc.freenode.net`` and join
+``#repoze``.
+
 License
 -------
 
