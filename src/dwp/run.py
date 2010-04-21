@@ -17,7 +17,7 @@ from django import utils
 from .utils import redefine_sockets
 from .utils import SOCKETS
 
-BUFFER_SIZE = 65535
+BUFFER_SIZE = 2**18
 
 SAFE_ENVIRON = 'HTTP_ACCEPT', \
                'HTTP_ACCEPT_CHARSET', \
