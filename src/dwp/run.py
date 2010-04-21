@@ -14,6 +14,9 @@ from django.core.handlers.wsgi import WSGIHandler
 from django import conf
 from django import utils
 
+from .utils import redefine_sockets
+from .utils import SOCKETS
+
 BUFFER_SIZE = 65535
 
 SAFE_ENVIRON = 'HTTP_ACCEPT', \
@@ -41,12 +44,10 @@ def make_app(config, **kwargs):
     return WSGIApplication(**kwargs)
 
 def run_loop(stdin, stdout, stderr, pipe, shared, queue, settings):
-    sys.stdin = os.fdopen(stdin, 'r')
-    sys.stdout = os.fdopen(stdout, 'w')
-    sys.stderr = os.fdopen(stderr, 'w')
+    redefine_sockets(stdin, stdout, stderr)
 
     # set up django environment
-    environ = imp.load_source("settings", settings)
+    imp.load_source("settings", settings)
     settings = conf.Settings("settings")
     conf.settings.configure(settings)
 
@@ -99,8 +100,7 @@ class WSGIApplication(object):
         self.input = mmap(fd, BUFFER_SIZE)
         pipe, self.pipe = Pipe()
         self.queue = JoinableQueue()
-        self.process = Process(target=run_loop, args=(
-            sys.stdin.fileno(), sys.stdout.fileno(), sys.stderr.fileno(),
+        self.process = Process(target=run_loop, args=SOCKETS + (
             pipe, fd, self.queue, settings))
         self.process.daemon = True
         self.process.start()

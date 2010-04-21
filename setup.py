@@ -47,6 +47,9 @@ setup(
     entry_points="""
     [paste.app_factory]
     app = dwp.run:make_app
+
+    [paste.global_paster_command]
+    manage=dwp.scripts:Manage
     """,
     )
 
