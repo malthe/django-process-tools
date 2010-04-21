@@ -24,6 +24,7 @@ SAFE_ENVIRON = 'HTTP_ACCEPT', \
                'HTTP_ACCEPT_ENCODING', \
                'HTTP_ACCEPT_LANGUAGE', \
                'HTTP_CONNECTION', \
+               'HTTP_COOKIE', \
                'HTTP_HOST', \
                'HTTP_KEEP_ALIVE', \
                'HTTP_USER_AGENT', \
