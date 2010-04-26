@@ -25,16 +25,16 @@ install_requires = [
     ]
 
 setup(
-    name="django-wsgi-tools",
+    name="django-process-tools",
     version=__version__,
-    description="Process-based WSGI application host for Django.",
+    description="Tools for running and managing Django in its own process.",
     long_description=long_description,
     classifiers=[
        "Development Status :: 3 - Alpha",
        "Intended Audience :: Developers",
        "Programming Language :: Python",
       ],
-    keywords="django multiprocess wsgi",
+    keywords="django multiprocess wsgi testing",
     author="Malthe Borch",
     author_email="mborch@gmail.com",
     install_requires=install_requires,
@@ -46,10 +46,10 @@ setup(
     tests_require = install_requires,
     entry_points="""
     [paste.app_factory]
-    app = dwp.run:make_app
+    app = dpt.run:make_app
 
     [paste.global_paster_command]
-    manage=dwp.scripts:Manage
+    manage=dpt.scripts:Manage
     """,
     )
 

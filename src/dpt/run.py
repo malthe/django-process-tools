@@ -3,6 +3,7 @@ import imp
 import sys
 import threading
 import traceback
+import webob
 
 from multiprocessing import Process
 from multiprocessing import Pipe
@@ -27,6 +28,7 @@ SAFE_ENVIRON = 'HTTP_ACCEPT', \
                'HTTP_COOKIE', \
                'HTTP_HOST', \
                'HTTP_KEEP_ALIVE', \
+               'HTTP_REFERER', \
                'HTTP_USER_AGENT', \
                'CONTENT_LENGTH', \
                'CONTENT_TYPE', \
@@ -40,6 +42,9 @@ SAFE_ENVIRON = 'HTTP_ACCEPT', \
                'SERVER_PORT', \
                'SERVER_PROTOCOL', \
                'SERVER_SOFTWARE', \
+               'wsgi.run_once', \
+               'wsgi.url_scheme', \
+               'wsgi.version'
 
 def make_app(config, **kwargs):
     return WSGIApplication(**kwargs)
@@ -59,7 +64,18 @@ def run_loop(stdin, stdout, stderr, pipe, shared, queue, settings):
     output = mmap(shared, BUFFER_SIZE)
 
     while True:
-        environ = pipe.recv()
+        environ, input_fd, error_fd = pipe.recv()
+
+        try:
+            environ['wsgi.input'] = os.fdopen(input_fd, 'r')
+        except OSError:
+            pass
+
+        try:
+            environ['wsgi.errors'] = os.fdopen(error_fd, 'w')
+        except OSError:
+            pass
+
         response = ["500 Internal Server Error", [], None]
 
         def start_response(*args):
@@ -71,8 +87,16 @@ def run_loop(stdin, stdout, stderr, pipe, shared, queue, settings):
             exc_info = sys.exc_info()
             chunks = traceback.format_exception(*exc_info)
 
-        pipe.send(response)
+        headerlist = response[1]
+        for header, value in headerlist:
+            if header == 'Content-Length':
+                pipe.send(response)
+                started = True
+                break
+        else:
+            started = False
 
+        length = 0
         for chunk in chunks:
             size = len(chunk)
             if size > BUFFER_SIZE:
@@ -88,6 +112,11 @@ def run_loop(stdin, stdout, stderr, pipe, shared, queue, settings):
                 output.seek(position)
 
             queue.put_nowait((position, size))
+            length += size
+
+        if not started:
+            headerlist.append(('Content-Length', str(length)))
+            pipe.send(response)
         queue.put(None)
 
     os.fdclose(shared)
@@ -111,8 +140,21 @@ class WSGIApplication(object):
         safe_environ = dict(
             (name, environ.get(name, '')) for name in SAFE_ENVIRON)
 
+        safe_environ['wsgi.multiprocess'] = True
+        safe_environ['wsgi.multithread'] = False
+
+        try:
+            wsgi_input_fd = os.dup(environ['wsgi.input'].fileno())
+        except KeyError, AttributeError:
+            wsgi_input_fd = None
+
+        try:
+            wsgi_error_fd = os.dup(environ['wsgi.errors'].fileno())
+        except AttributeError:
+            wsgi_error_fd = None
+
         # send request
-        self.pipe.send(safe_environ)
+        self.pipe.send((safe_environ, wsgi_input_fd, wsgi_error_fd))
 
         # single-threaded
         self.lock.acquire()
