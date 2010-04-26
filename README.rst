@@ -1,9 +1,21 @@
 Overview
 ========
 
-This package enables you to manage and run Django applications in
-their own process space. It's designed for use with the PasteScript
+This package enables you to test, manage and run Django applications
+in their own process space. It's designed for use with the PasteScript
 and PasteDeploy packages.
+
+Testing
+-------
+
+Simply inherit your test case class from
+``dpt.testing.FunctionalTestCase`` instead of ``unittest.TestCase``.
+
+This will cause the testrunner to start a new process and run the test
+in isolation. Test results will appear exactly the same.
+
+Note that this will set up the default Django settings environment
+``django.conf.global_settings`` with a SQLite in-memory database.
 
 Running an application
 ----------------------
@@ -14,7 +26,7 @@ For a general introduction to PasteDeploy consult its `documentation
 Sample configuration ``deploy.ini``::
 
   [app:my-django-app]
-  use = egg:django-wsgi-process#app
+  use = egg:django-process-tools#app
   settings = %(here)s/settings.py
 
   [composite:main]
@@ -56,7 +68,7 @@ Support
 -------
 
 This software is kept in source control: `git repository
-<http://github.com/malthe/django-wsgi-tools>`_.
+<http://github.com/malthe/django-process-tools>`_.
 
 For support please log on to ``irc.freenode.net`` and join
 ``#repoze``.

@@ -33,7 +33,7 @@ def run_test(stdin, stdout, stderr, pipe, cls, name):
     finally:
         redefine_sockets(*SOCKETS)
 
-class ProcessTestCase(TestCase):
+class FunctionalTestCase(TestCase):
     def __new__(cls, name=None):
         if name is None:
             return TestCase.__new__(cls)
