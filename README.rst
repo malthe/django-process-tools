@@ -2,8 +2,7 @@ Overview
 ========
 
 This package enables you to test, manage and run Django applications
-in their own process space. It's designed for use with the PasteScript
-and PasteDeploy packages.
+in their own process space.
 
 Testing
 -------
@@ -34,9 +33,11 @@ Sample configuration ``deploy.ini``::
   / = my-django-app
 
   [server:main]
-  use = egg:Paste#http
+  use = egg:Spawning
   host = 0.0.0.0
   port = 8080
+  processes = 4
+  threadpool_workers = 1
 
 Note the reference to the ``settings.py`` file which in this example
 resides in the same directory (the ``here`` variable is substituted
